@@ -311,7 +311,7 @@ struct HoldTests {
 
     @Test func holdsDoNotMatterFarFromTheBreak() {
         var e = FarFocusEngine()
-        run(&e, 100, hold: .focus)
+        run(&e, 100, hold: .mirroredDisplay)
         #expect(e.hold == nil && e.remaining == 1100)
     }
 
@@ -337,6 +337,17 @@ struct HoldTests {
         #expect(e.phase == .breaking)
         run(&e, 5, hold: .screenShared)
         #expect(e.phase == .breaking && e.remaining == 14)
+    }
+
+    @Test func everyRemainingHoldStillHoldsTheBreak() {
+        for reason in [HoldReason.screenShared, .mirroredDisplay, .fullScreenMedia] {
+            var e = FarFocusEngine()
+            run(&e, 1170, hold: reason)
+            #expect(e.phase == .working && e.hold == reason && e.surface == .none, "\(reason)")
+            #expect(StatusText.label(for: e) == "due")
+            run(&e, 1)
+            #expect(e.phase == .warning && e.surface == .card, "\(reason): the full warning when it ends")
+        }
     }
 
     @Test func holdCheckOnlyNearTheBreak() {

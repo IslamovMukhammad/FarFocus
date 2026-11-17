@@ -36,16 +36,15 @@ Then you're back to work and the next cycle starts.
 - **Holds instead of interrupting.** A due break waits ("due" in the menu bar) while:
   - your screen is **shared or recorded**,
   - a display is **mirrored**,
-  - a **full-screen app plays a video or a slideshow**,
-  - a **Focus** is on (a setting, on by default).
+  - a **full-screen app plays a video or a slideshow**.
 
   When that ends, the full warning comes first, so a break never arrives unannounced. A hold doesn't use a postpone.
 - **Sleep and lock count.** If your Mac sleeps, its displays turn off or it's locked for at least a break's
   length, that counts as the break. Anything shorter resumes where it was.
 - **Menu bar.** An ∞ with the minutes left (`18m`), seconds during the warning, `due` while held, dimmed when off.
   Click it for **Break now**, an on/off switch, quick **Every** and **Rest** pickers, Settings and Quit.
-- **Settings.** Work and rest length, warning lead (10–90 s), postpones per break, idle threshold, hold during
-  Focus, open at login. On/off is remembered.
+- **Settings.** Work and rest length, warning lead (10–90 s), postpones per break, idle threshold, open at login.
+  On/off is remembered.
 - Reduce Motion and Reduce Transparency respected. Native SwiftUI + AppKit, no third-party dependencies,
   about 0 % CPU between breaks.
 
@@ -96,9 +95,8 @@ Launch the app from Finder or with `open`, not by running the binary from a term
 
 ## Permissions and privacy
 
-- **Focus Status** is the only permission FarFocus asks for, once at launch while "Hold breaks while a Focus is
-  on" is on. It only reads whether a Focus is on.
-- **No Accessibility, Screen Recording or Input Monitoring.** The break windows take the keyboard while they're
+- **No permissions.** FarFocus asks for none: no Accessibility, Screen Recording, Input Monitoring or Focus Status.
+- **Esc without permissions.** The break windows take the keyboard while they're
   shown, so Esc works without any permission. A global Esc listener only ever reacts to the Esc key, and only
   if you've already granted Accessibility for another reason.
 - To tell whether your screen is shared or recorded, FarFocus asks macOS a yes/no question
@@ -114,7 +112,7 @@ Launch the app from Finder or with `open`, not by running the binary from a term
 |---|---|
 | The rules: phases, postpones, idle, holds, sleep (pure, unit-tested) | `Sources/FarFocus/Engine/FarFocusEngine.swift` |
 | Timer, Esc, safety net, wiring | `Sources/FarFocus/App/FarFocusController.swift` |
-| Screen sharing, mirroring, full-screen media, Focus | `Sources/FarFocus/System/HoldDetector.swift` |
+| Screen sharing, mirroring, full-screen media | `Sources/FarFocus/System/HoldDetector.swift` |
 | Sleep, lock and idle time | `Sources/FarFocus/System/SleepWatcher.swift`, `IdleTime.swift` |
 | Warning card, countdown, break windows | `Sources/FarFocus/UI/` |
 
@@ -123,7 +121,10 @@ Launch the app from Finder or with `open`, not by running the binary from a term
 - The screen-sharing check uses a private macOS call; if a future macOS removes it, that one check is skipped.
 - Full-screen video and slideshow detection relies on display-sleep assertions, so an app that doesn't set them
   isn't detected.
-- The Focus hold needs the Focus Status permission; without it, breaks don't wait for a Focus.
+- Focus / Do Not Disturb isn't detected. macOS only tells messaging apps (those with Apple's Communication
+  Notifications entitlement) whether a Focus is on, so FarFocus can't see it. If you don't want a break during a
+  Focus, postpone it or switch FarFocus off from the menu bar. (v1.0 had a "hold during Focus" switch; it never
+  worked and was removed in 1.0.1.)
 - English UI only.
 
 Bug reports and pull requests are welcome.

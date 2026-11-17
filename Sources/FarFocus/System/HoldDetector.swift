@@ -1,23 +1,21 @@
 import AppKit
 import CoreGraphics
-import Intents
 import IOKit.pwr_mgt
 
-/// Answers "should a due break wait right now?". Every check is cheap and needs no permission
-/// (Focus asks once for the system's Focus Status permission).
+/// Answers "should a due break wait right now?". Every check is cheap and needs no permission.
+/// Focus / Do Not Disturb is not one of them: macOS only reports Focus to messaging apps (see the README).
 @MainActor
 final class HoldDetector {
 
-    /// Demo/testing override: `FARFOCUS_FAKE_HOLD=share|mirror|media|focus`.
+    /// Demo/testing override: `FARFOCUS_FAKE_HOLD=share|mirror|media`.
     var forced: HoldReason?
 
-    func current(respectFocus: Bool) -> HoldReason? {
+    func current() -> HoldReason? {
         if let forced { return forced }
         if Demo.ignoreHolds { return nil }
         if Self.screenIsCaptured() { return .screenShared }
         if Self.displayIsMirrored() { return .mirroredDisplay }
         if Self.fullScreenMediaIsPlaying() { return .fullScreenMedia }
-        if respectFocus && focusIsOn() { return .focus }
         return nil
     }
 
@@ -101,28 +99,5 @@ final class HoldDetector {
         if ownedByFrontmost { return true }
         let name = (assertion[kIOPMAssertionNameKey as String] as? String ?? "").lowercased()
         return ["media", "video", "playback", "presentation", "slideshow"].contains { name.contains($0) }
-    }
-
-    // MARK: Focus
-
-    private var askedForFocus = false
-
-    /// Asks for the Focus Status permission once (macOS shows its own prompt the first time).
-    func prepareFocus() {
-        guard !askedForFocus else { return }
-        askedForFocus = true
-        if INFocusStatusCenter.default.authorizationStatus == .notDetermined {
-            INFocusStatusCenter.default.requestAuthorization { _ in }
-        }
-    }
-
-    var focusPermissionDenied: Bool {
-        let status = INFocusStatusCenter.default.authorizationStatus
-        return status == .denied || status == .restricted
-    }
-
-    func focusIsOn() -> Bool {
-        guard INFocusStatusCenter.default.authorizationStatus == .authorized else { return false }
-        return INFocusStatusCenter.default.focusStatus.isFocused ?? false
     }
 }

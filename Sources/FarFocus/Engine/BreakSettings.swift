@@ -48,7 +48,6 @@ enum HoldReason: Equatable, Sendable {
     case screenShared
     case mirroredDisplay
     case fullScreenMedia
-    case focus
 
     /// For the menu: "Holding: …".
     var explanation: String {
@@ -56,7 +55,6 @@ enum HoldReason: Equatable, Sendable {
         case .screenShared: "your screen is being shared or recorded"
         case .mirroredDisplay: "your display is mirrored"
         case .fullScreenMedia: "a full-screen video or presentation is playing"
-        case .focus: "a Focus is on"
         }
     }
 }

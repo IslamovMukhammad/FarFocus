@@ -16,7 +16,7 @@ cp "$BIN" "$APP/Contents/MacOS/FarFocus"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 iconutil -c icns Resources/AppIcon.iconset -o "$APP/Contents/Resources/AppIcon.icns"
 
-# Sign with a stable identity so macOS remembers the Focus permission and the login item across rebuilds.
+# Sign with a stable identity so macOS remembers the login item across rebuilds.
 # Falls back to ad-hoc signing (people building from source without a certificate).
 IDENTITY=$(security find-identity -v -p codesigning | awk -F'"' '/Apple Development|Developer ID Application/ {print $2; exit}')
 codesign --force --sign "${IDENTITY:--}" "$APP"

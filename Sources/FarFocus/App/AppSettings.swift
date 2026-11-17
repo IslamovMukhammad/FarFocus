@@ -13,7 +13,6 @@ final class AppSettings {
     var warningLeadSeconds: Int { didSet { save(warningLeadSeconds, Keys.warningLead) } }
     var postponeLimit: Int { didSet { save(postponeLimit, Keys.postponeLimit) } }
     var idleThresholdSeconds: Int { didSet { save(idleThresholdSeconds, Keys.idleThreshold) } }
-    var holdDuringFocus: Bool { didSet { save(holdDuringFocus, Keys.holdDuringFocus) } }
 
     /// Called after any change that affects the cycle.
     @ObservationIgnored var onChange: (() -> Void)?
@@ -26,7 +25,8 @@ final class AppSettings {
         static let warningLead = "warningLeadSeconds"
         static let postponeLimit = "postponeLimit"
         static let idleThreshold = "idleThresholdSeconds"
-        static let holdDuringFocus = "holdDuringFocus"
+        /// v1.0 stored "hold breaks while a Focus is on" here; removed in v1.0.1 (macOS never told the app).
+        static let legacyHoldDuringFocus = "holdDuringFocus"
     }
 
     init(store: SettingsStore) {
@@ -43,7 +43,8 @@ final class AppSettings {
                                    BreakSettings.postponeLimitRange)
         idleThresholdSeconds = Self.pick(store.object(forKey: Keys.idleThreshold) as? Int ?? Int(d.idleThreshold),
                                          BreakSettings.idleThresholdChoices, fallback: Int(d.idleThreshold))
-        holdDuringFocus = store.object(forKey: Keys.holdDuringFocus) as? Bool ?? true
+        // A v1.0 settings file may still hold the old Focus switch: ignore it and tidy it away.
+        if store.object(forKey: Keys.legacyHoldDuringFocus) != nil { store.set(nil, forKey: Keys.legacyHoldDuringFocus) }
     }
 
     /// The cycle's numbers. Demo mode can shrink them to seconds to watch a whole cycle quickly.

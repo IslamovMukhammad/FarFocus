@@ -4,7 +4,6 @@ import SwiftUI
 /// Native settings: grouped form, system appearance, nothing custom where macOS has a control.
 struct SettingsView: View {
     @Bindable var settings: AppSettings
-    var focusPermissionDenied: Bool
     @State private var openAtLogin = LoginItem.isOn
     @State private var loginNeedsApproval = LoginItem.needsApproval
 
@@ -23,12 +22,17 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Section("Before a break") {
+            Section {
                 Picker("Warn me", selection: $settings.warningLeadSeconds) {
                     ForEach(BreakSettings.warningLeadChoices, id: \.self) { Text("\($0) s before").tag($0) }
                 }
                 StepperRow(title: "Postpones per break", value: $settings.postponeLimit,
                            range: BreakSettings.postponeLimitRange, step: 1) { $0 == 0 ? "None" : "\($0)" }
+            } header: {
+                Text("Before a break")
+            } footer: {
+                Text("Breaks wait while your screen is shared or recorded, while a display is mirrored, and while a full-screen app plays a video or a presentation. The break comes, with its warning, as soon as that ends.")
+                    .foregroundStyle(.secondary)
             }
 
             Section {
@@ -40,21 +44,6 @@ struct SettingsView: View {
             } footer: {
                 Text("Time without keyboard or mouse input doesn't count as work.")
                     .foregroundStyle(.secondary)
-            }
-
-            Section {
-                Toggle("While a Focus is on", isOn: $settings.holdDuringFocus)
-            } header: {
-                Text("Hold breaks")
-            } footer: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Breaks also wait while your screen is shared or recorded, while a display is mirrored, and while a full-screen app plays a video or a presentation. The break comes, with its warning, as soon as that ends.")
-                    if settings.holdDuringFocus && focusPermissionDenied {
-                        Text("FarFocus can't see your Focus: allow it in System Settings › Privacy & Security › Focus.")
-                            .foregroundStyle(.orange)
-                    }
-                }
-                .foregroundStyle(.secondary)
             }
 
             Section("General") {
@@ -108,14 +97,12 @@ private struct StepperRow: View {
 final class SettingsWindow {
     static let shared = SettingsWindow()
     private(set) var window: NSWindow?
-    var focusPermissionDenied: () -> Bool = { false }
 
     var isVisible: Bool { window?.isVisible == true }
 
     func show() {
         if window == nil {
-            let host = NSHostingView(rootView: SettingsView(settings: AppSettings.shared,
-                                                            focusPermissionDenied: focusPermissionDenied()))
+            let host = NSHostingView(rootView: SettingsView(settings: AppSettings.shared))
             let window = NSWindow(contentRect: NSRect(origin: .zero, size: host.fittingSize),
                                   styleMask: [.titled, .closable, .miniaturizable],
                                   backing: .buffered, defer: false)

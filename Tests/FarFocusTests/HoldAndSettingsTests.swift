@@ -41,7 +41,7 @@ struct HoldRuleTests {
     }
 
     @Test func holdReasonsExplainThemselves() {
-        for reason in [HoldReason.screenShared, .mirroredDisplay, .fullScreenMedia, .focus] {
+        for reason in [HoldReason.screenShared, .mirroredDisplay, .fullScreenMedia] {
             #expect(!reason.explanation.isEmpty)
         }
     }
@@ -59,7 +59,7 @@ struct SavedSettingsTests {
 
     @Test func defaultsMatchTheEngine() {
         let s = AppSettings(store: MemoryStore())
-        #expect(s.enabled && s.holdDuringFocus)
+        #expect(s.enabled)
         #expect(s.breakSettings == BreakSettings())
     }
 
@@ -74,6 +74,27 @@ struct SavedSettingsTests {
         #expect(calls == 2)
         #expect(AppSettings(store: store).breakSettings.workInterval == 2700)
         #expect(AppSettings(store: store).breakSettings.postponeLimit == 0)
+    }
+
+    @Test func aV1SettingsFileWithTheOldFocusSwitchStillLoads() {
+        let store = MemoryStore()
+        store.values = [AppSettings.Keys.legacyHoldDuringFocus: true, AppSettings.Keys.workMinutes: 30,
+                        AppSettings.Keys.enabled: false]
+        let s = AppSettings(store: store)
+        #expect(s.workMinutes == 30 && !s.enabled, "the other settings survive")
+        #expect(store.values[AppSettings.Keys.legacyHoldDuringFocus] == nil, "the old key is tidied away")
+        #expect(AppSettings(store: store).workMinutes == 30)
+    }
+
+    @Test func theAppAsksForNoPermission() throws {
+        // v1.0.1: no Focus Status (or any other) usage description in the bundle.
+        let plist = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Resources/Info.plist")
+        let dict = try #require(NSDictionary(contentsOf: plist) as? [String: Any])
+        #expect(dict.keys.filter { $0.hasSuffix("UsageDescription") }.isEmpty)
+        #expect(dict["CFBundleShortVersionString"] as? String == "1.0.1")
+        #expect(dict["CFBundleVersion"] as? String == "2")
     }
 
     @Test func outOfRangeValuesAreRepaired() {

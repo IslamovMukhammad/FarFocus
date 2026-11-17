@@ -38,9 +38,6 @@ final class FarFocusController {
 
     func start() {
         holds.forced = Demo.fakeHold
-        // Screenshot modes never ask for permissions.
-        if settings.holdDuringFocus && (!Demo.isOn || Demo.mode == "live") { holds.prepareFocus() }
-        SettingsWindow.shared.focusPermissionDenied = { [holds] in holds.focusPermissionDenied }
 
         settings.onChange = { [weak self] in self?.settingsChanged() }
 
@@ -87,7 +84,7 @@ final class FarFocusController {
         let dt = t - lastTick
         lastTick = t
         if !frozen {
-            let hold = engine.wantsHoldCheck ? holds.current(respectFocus: settings.holdDuringFocus) : nil
+            let hold = engine.wantsHoldCheck ? holds.current() : nil
             engine.advance(by: dt, idle: IdleTime.seconds(), hold: hold)
         }
         // The second half of the safety net: a break on screen far too long ends, whatever the engine says.
@@ -106,7 +103,7 @@ final class FarFocusController {
         let t = now
         if !frozen {
             // Bank the time since the last tick first, so an action never loses or double-counts seconds.
-            let hold = engine.wantsHoldCheck ? holds.current(respectFocus: settings.holdDuringFocus) : nil
+            let hold = engine.wantsHoldCheck ? holds.current() : nil
             engine.advance(by: t - lastTick, idle: IdleTime.seconds(), hold: hold)
         }
         lastTick = t
@@ -118,7 +115,6 @@ final class FarFocusController {
     private func settingsChanged() {
         if settings.enabled != engine.isEnabled { engine.setEnabled(settings.enabled) }
         engine.apply(settings.breakSettings)
-        if settings.holdDuringFocus && (!Demo.isOn || Demo.mode == "live") { holds.prepareFocus() }
         render()
         scheduleTick(after: engine.tickInterval)
     }

@@ -10,7 +10,7 @@ import AppKit
 ///     FARFOCUS_DEMO=live        …   # runs for real, with the short intervals below
 ///
 /// `FARFOCUS_WORK_SECONDS`, `FARFOCUS_BREAK_SECONDS`, `FARFOCUS_LEAD_SECONDS` shrink the cycle (live mode).
-/// `FARFOCUS_FAKE_HOLD=share|mirror|media|focus` pretends a hold is active.
+/// `FARFOCUS_FAKE_HOLD=share|mirror|media` pretends a hold is active.
 /// Testing: `FARFOCUS_IDLE_SECONDS` (a short idle threshold), `FARFOCUS_TEST_STALL=1` (the timer stops when a
 /// break starts, so only the safety net can end it), `FARFOCUS_LOG=1` (state changes to stderr),
 /// `FARFOCUS_REDUCE_MOTION=1`, and the `FarFocus.test.lock` / `FarFocus.test.unlock` distributed notifications.
@@ -51,7 +51,6 @@ enum Demo {
         case "share": return .screenShared
         case "mirror": return .mirroredDisplay
         case "media": return .fullScreenMedia
-        case "focus": return .focus
         default: return nil
         }
     }
